@@ -1,0 +1,20 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>塔羅流年｜雙人合盤</title><link rel="stylesheet" href="/styles.css"></head><body><header><div class="tag">PROFESSIONAL TAROT • LINE 會員版</div><h1>塔羅流年・雙人合盤</h1><p>依據原始 Excel 的計算邏輯建立。國曆與農曆始終同時顯示。</p><nav class="nav"><a href="/">個人排盤</a><a href="/pair.html" class="on">雙人合盤</a></nav></header><main><div id="memberArea"></div><section id="pair" class="hide"><h2>雙人合盤 <span class="pill">左：第一人・右：第二人</span></h2><div class="pairctl2"><div><label for="nameA">第一人稱呼（選填）</label><input id="nameA" placeholder="例如：本人"></div><div><label for="birthA">第一人國曆生日</label><input type="date" id="birthA" min="1900-01-01" max="2100-12-31"></div><div><label for="nameB">第二人稱呼（選填）</label><input id="nameB" placeholder="例如：另一半"></div><div><label for="birthB">第二人國曆生日</label><input type="date" id="birthB" min="1900-01-01" max="2100-12-31"></div></div><div style="margin-top:14px"><button id="paircalc">產生雙人合盤</button></div><p class="notice">金框表示兩人在同一欄位抽到同一張牌；滑鼠移到牌上可看牌意。</p><p class="alertlegend"><span class="alerttag">13 死神</span><span class="alerttag">16 高塔</span>出現在流年、今天的年運／流月／流日時以紅色標示</p><div id="pairError" class="warn hide"></div><div id="pairResult"></div></section></main><script src="/app.js"></script><script>
+'use strict';
+const pcell=(n,other,cls,flow)=>`<td class="${cls}${n===other?' same':''}${flow&&isAlert(n)?' alertcell':''}" title="${esc(card(n)?.meaning||'')}"><b>${esc(n)}</b><small>${esc(cardName(n))}</small></td>`;
+function pairTable(title,rows,A,B,flow=false){return `<div class="pairblock"><h3>${title}</h3><div class="tablewrap"><table class="pairgrid"><colgroup><col style="width:16%"><col span="4" style="width:21%"></colgroup><thead><tr><th></th><th colspan="2" class="pa">${esc(A)}</th><th colspan="2" class="pb">${esc(B)}</th></tr><tr><th>項目</th><th class="pa">☀ 國曆</th><th class="pa">☾ 農曆</th><th class="pb">☀ 國曆</th><th class="pb">☾ 農曆</th></tr></thead><tbody>${rows.map(([label,a,b])=>`<tr><td>${label}</td>${pcell(a.s,b.s,'pa',flow)}${pcell(a.l,b.l,'pa',flow)}${pcell(b.s,a.s,'pb',flow)}${pcell(b.l,a.l,'pb',flow)}</tr>`).join('')}</tbody></table></div></div>`}
+async function renderPair(){const eb=$('pairError');eb.classList.add('hide');const ia=$('birthA').value,ib=$('birthB').value;
+ if(!ia||!ib){eb.textContent='請輸入兩個人的生日。';eb.classList.remove('hide');return}
+ let r;try{r=await api('/api/pair',{birthA:ia,birthB:ib})}catch(e){eb.textContent=e.message;eb.classList.remove('hide');$('pairResult').innerHTML='';return}
+ setCards(r.cards,r.alert);const NA=$('nameA').value.trim()||'第一人',NB=$('nameB').value.trim()||'第二人',A=r.A,B=r.B,t=r.today.solar;const L=['本性','外顯','內心'];
+ const head=`<div class="pairhead"><div class="pa"><strong>${esc(NA)}</strong>國曆 ${fmt(A.solar)}<br>農曆 ${fmtL(A.lunar)}</div><div class="pb"><strong>${esc(NB)}</strong>國曆 ${fmt(B.solar)}<br>農曆 ${fmtL(B.lunar)}</div></div>`;
+ $('pairResult').innerHTML=head
+  +pairTable('個性',L.map((x,i)=>[x,A.trait[i],B.trait[i]]),NA,NB)
+  +pairTable('貴人',L.map((x,i)=>[x,A.helper[i],B.helper[i]]),NA,NB)
+  +pairTable('流年運勢',['去年','今年','明年'].map((x,i)=>[`${x}<span class="yr">${A.years[i].year}</span>`,A.years[i],B.years[i]]),NA,NB,true)
+  +pairTable(`今天的運勢（${t.y}/${t.m}/${t.d}）`,['年運','流月','流日'].map((x,i)=>[x,A.today[i],B.today[i]]),NA,NB,true)}
+$('paircalc').addEventListener('click',renderPair);
+boot().then(me=>{$('memberArea').innerHTML=memberBar(me)+(me.active?'':lockNotice(me));
+ if(me.active){$('pair').classList.remove('hide');if(me.birth)$('birthA').value=me.birth}
+ else $('memberArea').insertAdjacentHTML('beforeend','<section><h2>雙人合盤</h2><p class="notice">雙人合盤僅限有效會員使用。你仍可在「個人排盤」查看本人生日的完整排盤。</p><a class="btnlink" href="/">前往個人排盤</a></section>')
+}).catch(e=>showFatal(e.message));
+</script></body></html>

@@ -1,0 +1,23 @@
+name = "tarot-chart"
+main = "src/worker.js"
+compatibility_date = "2025-09-01"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "tarot-members"
+# 申請 Cloudflare D1 後，把資料庫 ID 貼在這裡
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+
+[vars]
+# LINE Developers 後台的「LINE Login channel ID」（純數字）
+LINE_CHANNEL_ID = "REPLACE_WITH_CHANNEL_ID"
+# LIFF 的 ID（例如 1234567890-AbCdEfGh）
+LIFF_ID = "REPLACE_WITH_LIFF_ID"
+# 管理員的 LINE 使用者 ID，多位以逗號分隔（U 開頭）
+ADMIN_LINE_IDS = ""
+# 到期或未開通時顯示的聯絡方式
+CONTACT_TEXT = "請在 LINE 官方帳號留言，或聯絡老師辦理續約。"

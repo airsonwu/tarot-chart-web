@@ -1,0 +1,55 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>塔羅流年｜會員管理</title><link rel="stylesheet" href="/styles.css">
+<style>
+.counts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}.counts div{background:#171325;border:1px solid #4a3a64;border-radius:12px;padding:12px;text-align:center;font-size:14px;color:#c7bbda}.counts b{display:block;font-size:26px;color:#fff}
+.search{display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:6px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 4px}.filters button{background:transparent;border:1px solid #5c4a7a;color:#e4d2ff;font-size:14px;padding:7px 14px;font-weight:400}.filters button.on{background:#9873ed;color:#120b21;border-color:#9873ed;font-weight:700}
+.mcard{background:#171325;border:1px solid #4a3a64;border-radius:13px;padding:14px 16px;margin-top:12px}.mtop{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.mtop strong{font-size:17px;color:#fff}
+.mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px 14px;margin:10px 0;font-size:14px}.mgrid span{display:block;color:#a99bbd;font-size:12px}.mid{font-size:11px;color:#8d80a3;word-break:break-all}
+.mact{display:flex;gap:8px;flex-wrap:wrap}.mact button{font-size:14px;padding:9px 14px}.mact .ghost{background:transparent;border:1px solid #9873ed;color:#e4d2ff}
+.edit{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid #3e3351}.edit.hide{display:none}.edit .full{grid-column:1/-1}.edit input,.edit select,.edit textarea{width:100%;background:#100f1b;border:1px solid #605274;color:#fff;border-radius:9px;padding:10px 12px;font:inherit;color-scheme:dark}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#21573a;color:#fff;padding:11px 18px;border-radius:10px;font-size:15px;z-index:9}
+@media(max-width:750px){.mgrid{grid-template-columns:1fr 1fr}.edit{grid-template-columns:1fr}}
+</style></head><body>
+<header><div class="tag">PROFESSIONAL TAROT • LINE 會員版</div><h1>會員管理</h1><nav class="nav"><a href="/">個人排盤</a><a href="/pair.html">雙人合盤</a><a href="/admin.html" class="on">會員管理</a></nav></header>
+<main><div id="memberArea"></div>
+<section id="denied" class="hide"><h2>沒有管理權限</h2><p class="notice">若你是管理者，請把下面這組 LINE 使用者 ID 提供給系統設定人員，加入管理員名單。</p><p id="myId" class="date" style="word-break:break-all"></p></section>
+<section id="admin" class="hide">
+<div class="counts"><div>有效會員<b id="cActive">-</b></div><div>已到期<b id="cExpired">-</b></div><div>未開通<b id="cNone">-</b></div></div>
+<div class="search"><input id="q" placeholder="搜尋 LINE 名稱、生日、備註或 ID"><button id="qBtn">搜尋</button></div>
+<div class="filters"><button data-f="all" class="on">全部</button><button data-f="none">未開通</button><button data-f="active">有效</button><button data-f="expired">已到期</button><button data-f="soon">30 天內到期</button></div>
+<p class="notice">客戶需先從 LINE 打開過一次網頁，才會出現在名單中。「+1 年」會從目前到期日（已到期則從今天）往後延長一年。</p>
+<div id="list"></div></section></main>
+<script src="/app.js"></script><script>
+'use strict';
+let ALL=[],TODAY='',FILTER='all';
+const ST={active:['有效','ok'],expired:['已到期','off'],none:['未開通','off']};
+const d=s=>s?s.replace(/-/g,'/'):'—';
+function addDays(iso,n){const t=new Date(iso+'T00:00:00Z');t.setUTCDate(t.getUTCDate()+n);return t.toISOString().slice(0,10)}
+function toast(t){const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)}
+function mcardHtml(m){const [lab,cls]=ST[m.status];return `<div class="mcard" data-id="${esc(m.line_user_id)}">
+ <div class="mtop"><strong>${esc(m.display_name||'（無名稱）')}</strong><span class="mstat ${cls}">${lab}</span></div>
+ <div class="mgrid"><div><span>本人生日</span>${d(m.birth)}</div><div><span>方案</span>${esc(m.plan||'—')}</div><div><span>到期日</span>${d(m.expires_at)}</div><div><span>最近使用</span>${d((m.last_seen_at||'').slice(0,10))}</div>${m.note?`<div class="full" style="grid-column:1/-1"><span>備註</span>${esc(m.note)}</div>`:''}</div>
+ <div class="mid">${esc(m.line_user_id)}</div>
+ <div class="mact" style="margin-top:10px"><button data-act="y1">+1 年</button><button data-act="edit" class="ghost">編輯</button></div>
+ <div class="edit hide">
+  <div><label>方案名稱</label><input data-k="plan" value="${esc(m.plan||'年費')}"></div>
+  <div><label>到期日（含當天）</label><input type="date" data-k="expiresAt" value="${esc(m.expires_at||'')}"></div>
+  <div><label>本人生日</label><input type="date" data-k="birth" value="${esc(m.birth||'')}"></div>
+  <div><label>&nbsp;</label><button data-act="stop" class="ghost" type="button">立即停用（到期日設為昨天）</button></div>
+  <div class="full"><label>備註（付款日期、金額等）</label><textarea data-k="note" rows="2">${esc(m.note||'')}</textarea></div>
+  <div class="full mact"><button data-act="save">儲存</button><button data-act="cancel" class="ghost">取消</button></div>
+ </div></div>`}
+function draw(){const soon=addDays(TODAY,30);const list=ALL.filter(m=>FILTER==='all'||(FILTER==='soon'?m.status==='active'&&m.expires_at<=soon:m.status===FILTER));
+ $('list').innerHTML=list.length?list.map(mcardHtml).join(''):'<p class="notice">沒有符合的會員。</p>'}
+async function reload(){const r=await api('/api/admin/members?q='+encodeURIComponent($('q').value.trim()));ALL=r.members;TODAY=r.today;$('cActive').textContent=r.counts.active;$('cExpired').textContent=r.counts.expired;$('cNone').textContent=r.counts.none;draw()}
+async function save(id,body,msg){try{const m=await api('/api/admin/member',{userId:id,...body});const i=ALL.findIndex(x=>x.line_user_id===id);if(i>=0)ALL[i]={...ALL[i],...m};draw();toast(msg);reload()}catch(e){alert(e.message)}}
+$('list').addEventListener('click',e=>{const b=e.target.closest('button[data-act]');if(!b)return;const box=b.closest('.mcard'),id=box.dataset.id,m=ALL.find(x=>x.line_user_id===id),act=b.dataset.act;
+ if(act==='y1'){if(confirm(`為「${m.display_name||id}」延長一年？`))save(id,{addYears:1,plan:m.plan||'年費'},'已延長一年')}
+ else if(act==='edit'){box.querySelector('.edit').classList.toggle('hide')}
+ else if(act==='cancel'){draw()}
+ else if(act==='stop'){if(confirm('確定立即停用？此會員將只能看本人生日的排盤。'))save(id,{expiresAt:addDays(TODAY,-1)},'已停用')}
+ else if(act==='save'){const v={};box.querySelectorAll('[data-k]').forEach(x=>v[x.dataset.k]=x.value.trim());save(id,v,'已儲存')}});
+document.querySelectorAll('.filters button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.filters button').forEach(x=>x.classList.toggle('on',x===b));FILTER=b.dataset.f;draw()});
+$('qBtn').onclick=()=>reload();$('q').addEventListener('keydown',e=>{if(e.key==='Enter')reload()});
+boot().then(me=>{$('memberArea').innerHTML=memberBar(me);if(!me.isAdmin){$('denied').classList.remove('hide');$('myId').textContent=me.userId;return}$('admin').classList.remove('hide');reload()}).catch(e=>showFatal(e.message));
+</script></body></html>
