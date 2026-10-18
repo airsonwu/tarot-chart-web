@@ -10,7 +10,7 @@ binding = "ASSETS"
 binding = "DB"
 database_name = "tarot-members"
 # 申請 Cloudflare D1 後，把資料庫 ID 貼在這裡
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_id = "7c3761a1-f184-4cb0-8c0d-aad080a21938"
 
 [vars]
 # LINE Developers 後台的「LINE Login channel ID」（純數字）
