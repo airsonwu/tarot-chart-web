@@ -4,7 +4,7 @@
 <section><h2>你生命中的貴人</h2><div class="cols"><div class="panel"><h3>☀ 國曆生日貴人</h3><div id="solarHelper" class="statgrid"></div></div><div class="panel"><h3>☾ 農曆生日貴人</h3><div id="lunarHelper" class="statgrid"></div></div></div><div id="helperMeanings"></div></section>
 <section><h2>你今天的運勢跟心境</h2><div id="todayDate" class="notice"></div><div class="cols today"><div class="panel"><h3>☀ 國曆運勢</h3><div id="solarToday" class="statgrid"></div></div><div class="panel"><h3>☾ 農曆運勢</h3><div id="lunarToday" class="statgrid"></div></div></div><div id="todayMeanings"></div></section>
 <section><h2>流年排盤</h2><div class="cols"><div class="panel"><h3>☀ 國曆流年</h3><div id="solarAnnual" class="statgrid"></div></div><div class="panel"><h3>☾ 農曆流年</h3><div id="lunarAnnual" class="statgrid"></div></div></div><div id="annualMeanings"></div></section>
-<section><h2>12 個月國農曆排盤</h2><div class="tablewrap"><table><thead><tr><th>月份</th><th>國曆牌號</th><th>當月 1 日的農曆月</th><th>農曆牌號</th></tr></thead><tbody id="months"></tbody></table></div><div id="monthMeanings"></div></section>
+<section><h2>12 個月國農曆排盤</h2><div class="scrollbox" id="monthsBox"><div class="scrollhint"><span id="monthsHintText">左右滑動表格，右側還有「農曆牌號」</span><span class="arrow">➜</span></div><div class="tablewrap" id="monthsWrap"><table><thead><tr><th>月份</th><th>國曆牌號</th><th>當月 1 日的農曆月</th><th>農曆牌號</th></tr></thead><tbody id="months"></tbody></table></div><div class="fade">›</div></div><div id="monthMeanings"></div></section>
 <section><h2>每日國農曆排盤</h2><div class="controls"><div><label for="day">選擇查詢日期</label><input type="date" id="day" min="1900-01-01" max="2100-12-31"></div><div><label>排盤基準</label><div class="notice">國農曆同時計算</div></div><button id="daycalc">查詢流日</button></div><div id="dayResult" class="cols" style="margin-top:15px"></div><div id="dayMeanings"></div></section></div>
 <section><div class="warn"><strong>測試版本聲明：</strong>計算邏輯已依原始 Excel 移植並逐日驗證，但仍屬測試版。此版本不會將生日傳送到外部服務。</div></section>
 </main><script src="./core.js"></script><script>
@@ -31,7 +31,9 @@ function showError(t){$('error').textContent=t;$('error').classList.remove('hide
 function renderDay(){const date=$('day').value;const ld=toLunar(date),l=toLunar($('birth').value);if(!ld||!l){$('dayResult').innerHTML='<div class="warn">此日期超出 1900–2100 年的換算範圍。</div>';$('dayMeanings').innerHTML='';return}const g=parse($('birth').value),d=parse(date);const s=dayNo(g,d),n=dayNo(l,d);
 $('dayResult').innerHTML=`<div class="panel"><h3>☀ 國曆 ${fmt(d)}</h3>${stat('流日牌號',s)}</div><div class="panel"><h3>☾ 農曆 ${fmtL(ld)}</h3>${stat('流日牌號',n)}</div>`;
 $('dayMeanings').innerHTML=sbsBlock('流日牌意',[[fmt(d),s,n]])}
-$('calc').addEventListener('click',render);$('daycalc').addEventListener('click',renderDay);
+$('calc').addEventListener('click',()=>{render();updateScrollHint()});$('daycalc').addEventListener('click',renderDay);
 document.addEventListener('toggle',e=>{const d=e.target;if(!(d instanceof HTMLDetailsElement))return;const row=d.closest('.sbs');if(!row)return;row.querySelectorAll('details').forEach(x=>{if(x!==d&&x.open!==d.open)x.open=d.open})},true);
-loadData().then(render).catch(e=>showError('資料載入失敗：'+e.message));
+function updateScrollHint(){const box=$('monthsBox'),w=$('monthsWrap');if(!box||!w)return;const can=w.scrollWidth>w.clientWidth+2;const end=can&&w.scrollLeft+w.clientWidth>=w.scrollWidth-2;box.classList.toggle('can',can);box.classList.toggle('end',end);$('monthsHintText').textContent=end?'已到最右側，往左滑可回到月份':'左右滑動表格，右側還有「農曆牌號」'}
+$('monthsWrap').addEventListener('scroll',updateScrollHint,{passive:true});window.addEventListener('resize',updateScrollHint);
+loadData().then(()=>{render();updateScrollHint()}).catch(e=>showError('資料載入失敗：'+e.message));
 </script></body></html>
