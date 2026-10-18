@@ -1,35 +1,36 @@
 <!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>塔羅流年｜國農曆排盤</title><link rel="stylesheet" href="./styles.css"></head><body><header><div class="tag">PROFESSIONAL TAROT • WEB PROTOTYPE V0.8</div><h1>塔羅流年・國農曆排盤</h1><p>依據原始 Excel 的計算邏輯建立。國曆與農曆始終同時顯示。</p><nav class="nav"><a href="./" class="on">個人排盤</a><a href="./pair.html">雙人合盤</a></nav></header><main>
 <section><h2>排盤設定 <span class="pill">無需登入・測試版</span></h2><div class="controls"><div><label for="birth">國曆出生日期</label><input type="date" id="birth" value="1978-06-03" min="1900-01-01" max="2100-12-31"></div><div><label for="year">查詢流年</label><input type="number" id="year" value="2026" min="1900" max="2100"></div><button id="calc">產生國農曆排盤</button></div><p class="notice">農曆換算採用壽星天文曆（UTC+8）產生，1900–2099 年已與香港天文台資料逐日交叉驗證。閏月依原表規則：閏 N 月以 N 月計算，畫面上另外標示「閏」。</p><div id="error" class="warn hide"></div></section>
 <div id="result" class="hide"><section><h2>本命排盤 <span class="pill">同步呈現</span></h2><div class="cols"><div class="panel"><h3>☀ 國曆本命</h3><div id="solarDate" class="date"></div><div id="solarStats" class="statgrid"></div></div><div class="panel"><h3>☾ 農曆本命</h3><div id="lunarDate" class="date"></div><div id="lunarStats" class="statgrid"></div></div></div><div id="birthMeanings"></div></section>
-<section><h2>你生命中的貴人</h2><div class="cols"><div class="panel"><h3>☀ 國曆生日貴人</h3><div id="solarHelper" class="statgrid"></div></div><div class="panel"><h3>☾ 農曆生日貴人</h3><div id="lunarHelper" class="statgrid"></div></div></div><div id="helperMeanings" class="meanings-grid"></div></section>
-<section><h2>你今天的運勢跟心境</h2><div id="todayDate" class="notice"></div><div class="cols today"><div class="panel"><h3>☀ 國曆運勢</h3><div id="solarToday" class="statgrid"></div></div><div class="panel"><h3>☾ 農曆運勢</h3><div id="lunarToday" class="statgrid"></div></div></div><div id="todayMeanings" class="meanings-grid"></div></section>
-<section><h2>流年排盤</h2><div class="cols"><div class="panel"><h3>☀ 國曆流年</h3><div id="solarAnnual" class="statgrid"></div></div><div class="panel"><h3>☾ 農曆流年</h3><div id="lunarAnnual" class="statgrid"></div></div></div><div id="annualMeanings" class="meanings-grid"></div></section>
+<section><h2>你生命中的貴人</h2><div class="cols"><div class="panel"><h3>☀ 國曆生日貴人</h3><div id="solarHelper" class="statgrid"></div></div><div class="panel"><h3>☾ 農曆生日貴人</h3><div id="lunarHelper" class="statgrid"></div></div></div><div id="helperMeanings"></div></section>
+<section><h2>你今天的運勢跟心境</h2><div id="todayDate" class="notice"></div><div class="cols today"><div class="panel"><h3>☀ 國曆運勢</h3><div id="solarToday" class="statgrid"></div></div><div class="panel"><h3>☾ 農曆運勢</h3><div id="lunarToday" class="statgrid"></div></div></div><div id="todayMeanings"></div></section>
+<section><h2>流年排盤</h2><div class="cols"><div class="panel"><h3>☀ 國曆流年</h3><div id="solarAnnual" class="statgrid"></div></div><div class="panel"><h3>☾ 農曆流年</h3><div id="lunarAnnual" class="statgrid"></div></div></div><div id="annualMeanings"></div></section>
 <section><h2>12 個月國農曆排盤</h2><div class="tablewrap"><table><thead><tr><th>月份</th><th>國曆牌號</th><th>當月 1 日的農曆月</th><th>農曆牌號</th></tr></thead><tbody id="months"></tbody></table></div><div id="monthMeanings"></div></section>
-<section><h2>每日國農曆排盤</h2><div class="controls"><div><label for="day">選擇查詢日期</label><input type="date" id="day" min="1900-01-01" max="2100-12-31"></div><div><label>排盤基準</label><div class="notice">國農曆同時計算</div></div><button id="daycalc">查詢流日</button></div><div id="dayResult" class="cols" style="margin-top:15px"></div><div id="dayMeanings" class="meanings-grid"></div></section></div>
+<section><h2>每日國農曆排盤</h2><div class="controls"><div><label for="day">選擇查詢日期</label><input type="date" id="day" min="1900-01-01" max="2100-12-31"></div><div><label>排盤基準</label><div class="notice">國農曆同時計算</div></div><button id="daycalc">查詢流日</button></div><div id="dayResult" class="cols" style="margin-top:15px"></div><div id="dayMeanings"></div></section></div>
 <section><div class="warn"><strong>測試版本聲明：</strong>計算邏輯已依原始 Excel 移植並逐日驗證，但仍屬測試版。此版本不會將生日傳送到外部服務。</div></section>
 </main><script src="./core.js"></script><script>
+const sbsBlock=(title,rows,kind='full')=>`<div class="sbs-wrap"><div class="sbs sbs-head"><div>☀ 國曆${title}</div><div>☾ 農曆${title}</div></div>`+rows.map(([label,a,b])=>`${label?`<div class="sbs-label">${esc(label)}</div>`:''}<div class="sbs"><div>${explain(a,kind)}</div><div>${explain(b,kind)}</div></div>`).join('')+'</div>';
 function render(){const s=$('birth').value;const yr=Number($('year').value);$('error').classList.add('hide');if(!s||!Number.isInteger(yr)||yr<1900||yr>2100){showError('請輸入有效的生日與查詢年份（1900–2100）。');return}const l=toLunar(s);if(!l){showError('生日超出 1900–2100 年的換算範圍。');return}
 const g=parse(s),gb=base(g),lb=base(l);
 $('solarDate').textContent=fmt(g);$('lunarDate').textContent=fmtL(l);
 $('solarStats').innerHTML=triple(gb).map(([a,b])=>stat(a,b)).join('');$('lunarStats').innerHTML=triple(lb).map(([a,b])=>stat(a,b)).join('');
-$('birthMeanings').innerHTML=`<div class="sbs-wrap"><div class="sbs sbs-head"><div>☀ 國曆本命牌意</div><div>☾ 農曆本命牌意</div></div>`+triple(gb).map(([label,n],i)=>`<div class="sbs-label">${esc(label)}</div><div class="sbs"><div>${explain(n,'trait')}</div><div>${explain(triple(lb)[i][1],'trait')}</div></div>`).join('')+'</div>';
+$('birthMeanings').innerHTML=sbsBlock('本命牌意',triple(gb).map(([x,n],i)=>[x,n,triple(lb)[i][1]]),'trait');
 const gh=triple(gb).map(([a,b])=>[a,helperNo(b)]),lh=triple(lb).map(([a,b])=>[a,helperNo(b)]);
 $('solarHelper').innerHTML=gh.map(([a,b])=>stat(a,b)).join('');$('lunarHelper').innerHTML=lh.map(([a,b])=>stat(a,b)).join('');
-$('helperMeanings').innerHTML=pairPanels('貴人牌意',gh,lh,'trait');
+$('helperMeanings').innerHTML=sbsBlock('貴人牌意',gh.map(([x,n],i)=>[x,n,lh[i][1]]),'trait');
 const ts=todayIso(),t=parse(ts),tl=toLunar(ts);
 if(tl){$('todayDate').textContent=`今天：國曆 ${fmt(t)}／農曆 ${fmtL(tl)}`;
 const st=[['年運',annual(g,t.y)],['本月',monthNo(g,t.y,t.m)],['本日',dayNo(g,t)]],lt=[['年運',annual(l,tl.y)],['本月',monthNo(l,t.y,t.m)],['本日',dayNo(l,t)]];
-$('solarToday').innerHTML=st.map(([a,b])=>stat(a,b)).join('');$('lunarToday').innerHTML=lt.map(([a,b])=>stat(a,b)).join('');$('todayMeanings').innerHTML=pairPanels('今日運勢',st,lt,'trait')}
+$('solarToday').innerHTML=st.map(([a,b])=>stat(a,b)).join('');$('lunarToday').innerHTML=lt.map(([a,b])=>stat(a,b)).join('');$('todayMeanings').innerHTML=sbsBlock('今日運勢',st.map(([x,n],i)=>[x,n,lt[i][1]]),'trait')}
 const ga=annual(g,yr),la=annual(l,yr);
 $('solarAnnual').innerHTML=stat(`${yr} 流年`,ga);$('lunarAnnual').innerHTML=stat(`${yr} 流年`,la);
-$('annualMeanings').innerHTML=`<div class="panel"><h3>☀ 國曆流年牌意</h3>${explain(ga)}</div><div class="panel"><h3>☾ 農曆流年牌意</h3>${explain(la)}</div>`;
+$('annualMeanings').innerHTML=sbsBlock('流年牌意',[[`${yr} 流年`,ga,la]]);
 let html='';const monthCards=[];for(let m=1;m<=12;m++){const lm=toLunar(`${yr}-${pad(m)}-01`);const sn=monthNo(g,yr,m),ln=monthNo(l,yr,m);monthCards.push([m,sn,ln]);html+=`<tr><td>${m} 月</td><td>${sn}・${esc(cardName(sn))}</td><td>${lm?(lm.leap?'閏':'')+lm.m+' 月':'—'}</td><td>${ln}・${esc(cardName(ln))}</td></tr>`}
-$('months').innerHTML=html;$('monthMeanings').innerHTML=`<details class="meaning"><summary><strong>展開 12 個月完整牌意</strong><span>國曆與農曆對照</span></summary><div class="monthly">${monthCards.map(([m,sn,ln])=>`<div class="panel"><h3>${m} 月</h3><div class="cols"><div><h4>☀ 國曆</h4>${explain(sn)}</div><div><h4>☾ 農曆</h4>${explain(ln)}</div></div></div>`).join('')}</div></details>`;
+$('months').innerHTML=html;$('monthMeanings').innerHTML=`<details class="meaning"><summary><strong>展開 12 個月完整牌意</strong><span>國曆與農曆對照</span></summary><div class="monthly">${sbsBlock('流月牌意',monthCards.map(([m,sn,ln])=>[`${m} 月`,sn,ln]))}</div></details>`;
 $('result').classList.remove('hide');$('day').value=ts.startsWith(yr+'-')?ts:`${yr}-01-01`;renderDay()}
 function showError(t){$('error').textContent=t;$('error').classList.remove('hide');$('result').classList.add('hide')}
 function renderDay(){const date=$('day').value;const ld=toLunar(date),l=toLunar($('birth').value);if(!ld||!l){$('dayResult').innerHTML='<div class="warn">此日期超出 1900–2100 年的換算範圍。</div>';$('dayMeanings').innerHTML='';return}const g=parse($('birth').value),d=parse(date);const s=dayNo(g,d),n=dayNo(l,d);
 $('dayResult').innerHTML=`<div class="panel"><h3>☀ 國曆 ${fmt(d)}</h3>${stat('流日牌號',s)}</div><div class="panel"><h3>☾ 農曆 ${fmtL(ld)}</h3>${stat('流日牌號',n)}</div>`;
-$('dayMeanings').innerHTML=`<div class="panel"><h3>☀ 國曆流日牌意</h3>${explain(s)}</div><div class="panel"><h3>☾ 農曆流日牌意</h3>${explain(n)}</div>`}
+$('dayMeanings').innerHTML=sbsBlock('流日牌意',[[fmt(d),s,n]])}
 $('calc').addEventListener('click',render);$('daycalc').addEventListener('click',renderDay);
 document.addEventListener('toggle',e=>{const d=e.target;if(!(d instanceof HTMLDetailsElement))return;const row=d.closest('.sbs');if(!row)return;row.querySelectorAll('details').forEach(x=>{if(x!==d&&x.open!==d.open)x.open=d.open})},true);
 loadData().then(render).catch(e=>showError('資料載入失敗：'+e.message));
