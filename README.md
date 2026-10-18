@@ -1,7 +1,7 @@
 # 塔羅流年國農曆合盤 V0.8
 
 ## V0.8
-- 拆成兩頁：`index.html` 個人合盤、`pair.html` 雙人合盤，頁首可切換。
+- 拆成兩頁：`index.html` 個人排盤、`pair.html` 雙人合盤，頁首可切換。
 - 共用計算程式移到 `core.js`，樣式移到 `styles.css`。
 
 ## V0.7
