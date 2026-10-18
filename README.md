@@ -1,4 +1,8 @@
-# 塔羅流年國農曆合盤 V0.7
+# 塔羅流年國農曆合盤 V0.8
+
+## V0.8
+- 拆成兩頁：`index.html` 個人合盤、`pair.html` 雙人合盤，頁首可切換。
+- 共用計算程式移到 `core.js`，樣式移到 `styles.css`。
 
 ## V0.7
 - 新增「雙人合盤」：輸入第二人生日，並排比對兩人的個性、貴人、去年／今年／明年流年、今天的年運／流月／流日；同欄位同牌以金框標示。
@@ -16,7 +20,7 @@
 - 本命欄位名稱改為原表的本性、外顯、內心。
 
 ## GitHub Pages
-需上傳 `index.html`、`lunar-months.json`、`tarot-meanings.json` 至 Repository 根目錄。
+需上傳 `index.html`、`pair.html`、`core.js`、`styles.css`、`lunar-months.json`、`tarot-meanings.json` 至 Repository 根目錄。
 Settings → Pages → Deploy from a branch → main / (root)。
 
 ## 注意
